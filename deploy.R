@@ -7,5 +7,8 @@ set_shinyappsio_config()
 rsconnect::deployApp(
   appName = 'Beivvi',
   appTitle = "Covid-19 analysis",
-  appPrimaryDoc = 'server.R'
+  appPrimaryDoc = 'server.R',
+  forceUpdate = TRUE,
+  lint = TRUE,
+  launch.browser = FALSE
 )

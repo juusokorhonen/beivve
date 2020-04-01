@@ -1,7 +1,7 @@
 library(shiny)
 
 # Define server logic required to draw a histogram
-server <- function(input, output) {
+function(input, output, session) {
   
   output$distPlot <- renderPlot({
     # generate bins based on input$bins from ui.R
@@ -12,6 +12,3 @@ server <- function(input, output) {
     hist(x, breaks = bins, col = 'darkgray', border = 'white')
   })
 }
-
-# Run the server
-shinyApp()
