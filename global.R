@@ -24,7 +24,7 @@ load_country_file_names <- function() {
     stop("COUNTRIES_PATH does not exist.")
   }
   
-  themes <- c("CNTR")   # Countries
+  themes <- c("CNTR")   # Theme: Countries
   spatial_types <- c("BN", "RG", "LN")   # boundaries (multilines); RG: regions (multipolygons); LB: labels (points)
   resolutions <- c("60M", "20M", "10M", "03M", "01M")
   release_years <- c("2016", "2013", "2010", "2006", "2001")
@@ -38,11 +38,27 @@ load_country_file_names <- function() {
   
   #filename_pattern <- "CNTR_BN_01M_2016_3035_COASTL.shp.zip"
   
-  match_pattern <- "^([A-Z]{4})_([A-Z]{2})_([0-9]{2}M)_([0-9]{4})_([0-9]{4})_([A-Z]{5})_([a-z\\.]+)$"
-  candidates <- list.files(countries_path)
-  
+  match_pattern <- paste0(
+    "(CNTR)",
+    "\\_(BN|RG|LN)",   # Spatial type
+    "\\_?([0-9]{2}M)?",  # Scale
+    "\\_([0-9]{4})",  # Year
+    "\\_([0-9]{4})",  # Projection
+    "\\_?(COASTL|INLAND)?",  
+    "\\.(gdb|shp\\.zip|geojson|json|pbf|svg\\.zip)$"
+  )
+  files <- list.files(countries_path, pattern = match_pattern)
+  col_names <- c("filename", "theme", "spatial_type", "scale", "year", "projection", "boundaries", "filetype")
+  files_data <- purrr::map(files, function(x) stringr::str_match(x, match_pattern) %>% dplyr::tibble(., .name_repair = 'unique'))
+  files_data <- matrix(unlist(files_data), nrow=length(files_data), byrow=T) %>% dplyr::as_tibble()
+  names(files_data) <- col_names
+  files_data %>%
+    dplyr::mutate(
+      path = countries_path,
+      layer = substring(filename, 1, nchar(filename)-nchar(filename)-1)
+    )
 }
 
-load_countries <- function() {
+load_countries <- function(filename) {
   
 }

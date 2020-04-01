@@ -8,6 +8,11 @@ Source: CRAN
 Version: 1.69.0-1
 Hash: 15f597ed227897f4f793b6161260f4b9
 
+Package: DBI
+Source: CRAN
+Version: 1.1.0
+Hash: d1075050684753e939c45775617c8f38
+
 Package: R6
 Source: CRAN
 Version: 2.4.0
@@ -49,6 +54,12 @@ Source: CRAN
 Version: 3.4.3
 Hash: e9b50bc56e655025fde6f2f4b65154de
 Requires: R6, processx
+
+Package: classInt
+Source: CRAN
+Version: 0.4-2
+Hash: fd0fe93c1798f5b2eca9a38448c06f98
+Requires: e1071
 
 Package: cli
 Source: CRAN
@@ -104,6 +115,11 @@ Version: 0.8.5
 Hash: 85c8ed5ccbce5c9dc8846e9939f73243
 Requires: BH, R6, Rcpp, assertthat, ellipsis, glue, magrittr,
     pkgconfig, plogr, rlang, tibble, tidyselect
+
+Package: e1071
+Source: CRAN
+Version: 1.7-3
+Hash: f851e9de06edec144aa7d996bbf32538
 
 Package: ellipsis
 Source: CRAN
@@ -228,6 +244,12 @@ Source: CRAN
 Version: 1.5
 Hash: bdc4d48c3135e8f3b399536ddf160df4
 
+Package: maptools
+Source: CRAN
+Version: 0.9-9
+Hash: ae27d1ebba1461b3a70051f77e41b767
+Requires: sp
+
 Package: markdown
 Source: CRAN
 Version: 1.1
@@ -344,6 +366,12 @@ Version: 1.3.1
 Hash: c45e5ec73f9bf1d1bdc1e4c6e6a87011
 Requires: BH, R6, Rcpp, clipr, crayon, hms, tibble
 
+Package: rgdal
+Source: CRAN
+Version: 1.4-8
+Hash: bff6f6bbb137f645fd789f7eab0f05b9
+Requires: sp
+
 Package: rlang
 Source: CRAN
 Version: 0.4.5
@@ -372,6 +400,12 @@ Version: 1.1.0
 Hash: fa53af4e3ceba05fc79a31bde5962445
 Requires: R6, RColorBrewer, farver, labeling, lifecycle, munsell,
     viridisLite
+
+Package: sf
+Source: CRAN
+Version: 0.9-0
+Hash: a84c5e094488f8f85dfd34561ff9be90
+Requires: DBI, Rcpp, classInt, magrittr, units
 
 Package: shiny
 Source: CRAN
@@ -425,6 +459,12 @@ Source: CRAN
 Version: 1.0.0
 Hash: 0ba21f624978533adf670338aa3f86b4
 Requires: ellipsis, glue, purrr, rlang, vctrs
+
+Package: units
+Source: CRAN
+Version: 0.6-6
+Hash: 3b4736496fe7f32e05be79539e325ff9
+Requires: Rcpp
 
 Package: utf8
 Source: CRAN
