@@ -1,5 +1,5 @@
-library(dotenv)
-#dotenv::load_dot_env('.env')   
+#library(dotenv)
+dotenv::load_dot_env('.env')   
 
 # Check for Shinyapps.IO account
 get_shinyappsio_config <- function() {
