@@ -2,8 +2,10 @@ library(rsconnect)
 
 # Load shinyapps.io config
 source("shinyappsio.R", local=TRUE)
-sio_config <- get_shinyappsio_config()
+set_shinyappsio_config()
 
-if (is.na(sio_config)) {
-  
-}
+rsconnect::deployApp(
+  appName = 'Beivvi',
+  appTitle = "Covid-19 analysis",
+  appPrimaryDoc = 'server.R'
+)

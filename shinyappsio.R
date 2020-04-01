@@ -18,3 +18,14 @@ get_shinyappsio_config <- function() {
     secret = Sys.getenv('SHINYAPPSIO_SECRET')
   ))
 }
+
+set_shinyappsio_config <- function() {
+  sio_config <- get_shinyappsio_config()
+  if (is.null(sio_config)) {
+    stop("No shinyapps.io config found. Cannot proceed.")
+  }
+  rsconnect::setAccountInfo(
+    name = sio_config[['name']], 
+    token = sio_config[['token']], 
+    secret = sio_config[['secret']])
+}
