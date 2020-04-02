@@ -239,6 +239,12 @@ Version: 0.2.0
 Hash: df8649860c43571aab68cc73a2a02807
 Requires: glue, rlang
 
+Package: lubridate
+Source: CRAN
+Version: 1.7.4
+Hash: 1ea7526e3b50f96340b9a4a1c7521809
+Requires: Rcpp, stringr
+
 Package: magrittr
 Source: CRAN
 Version: 1.5
