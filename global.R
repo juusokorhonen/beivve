@@ -2,8 +2,7 @@ library(shiny)
 library(leaflet)
 dotenv::load_dot_env('.env')
 
-r_colors <- rgb(t(col2rgb(colors()) / 255))
-names(r_colors) <- colors()
+#%% Function definitions
 
 load_country_names <- function() {
   names_file <- Sys.getenv('COUNTRIES_NAMES_PATH')
@@ -55,10 +54,48 @@ load_country_file_names <- function() {
   files_data %>%
     dplyr::mutate(
       path = countries_path,
-      layer = substring(filename, 1, nchar(filename)-nchar(filename)-1)
+      layer = substring(filename, 1, nchar(filename)-nchar(filetype)-1)
     )
 }
 
-load_countries <- function(filename) {
+load_countries <- function(file_name) {
+  base_name = basename(file_name)
+  dir_name = dirname(file_name)
+  
+  if (stringr::str_ends(base_name, ".zip")) {
+    zip_file <- base_name
+    shp_file <- stringr::str_remove(base_name, ".zip$")
+    
+    temp_dir <- tempdir()
+    #print("Extrating from zip file.")
+    
+    unzip(paste0(dir_name, "/", zip_file), junkpaths = TRUE, exdir = temp_dir, overwrite = TRUE)
+    dir_name <- temp_dir
+  } else {
+    shp_file <- base_name
+  }
+    
+  if (!file.exists(paste0(dir_name, "/", shp_file))) {
+      stop("Cannot find data source file.")
+  }
+  
+  data <- sf::read_sf(paste0(dir_name, "/", shp_file))
+  data
+}
+
+read_covid_daily_reports <- function() {
+  path <- Sys.getenv('COVID_DAILY_REPORTS_PATH')
+  
+  if (!dir.exists(path)) {
+    exit("Path does not exist! Please set COVID_DAILY_REPORTS_PATH.")
+  }
+  
+  
   
 }
+
+#%% Load values into variables
+
+countries_names <- load_country_names()
+countries_files <- load_country_file_names()
+countries_shapes <- load_countries("/Users/jtkorho2/Developer/beivvi/countries/ref-countries-2016-60m.shp/CNTR_RG_60M_2016_4326.shp.zip")
