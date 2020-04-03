@@ -5,7 +5,7 @@ dotenv::load_dot_env('.env')
 #%% Function definitions
 
 load_country_names <- function() {
-  names_file <- Sys.getenv('COUNTRIES_NAMES_PATH')
+  names_file <- Sys.getenv('COUNTRIES_NAMES_PATH', "data/countries/CNTR_AT_2016.csv")
   readr::read_csv(names_file, skip = 1, na = c("", "-"),
                   col_names = c('CNTR_ID', 'CNTR_NAME', 'NAME_ENGL', 'ISO3_CODE'),
                   col_types = c(
@@ -18,7 +18,7 @@ load_country_names <- function() {
 }
 
 load_country_file_names <- function() {
-  countries_path <- Sys.getenv('COUNTRIES_PATH')
+  countries_path <- Sys.getenv('COUNTRIES_PATH', "data/countries")
   if (!dir.exists(countries_path)) {
     stop("COUNTRIES_PATH does not exist.")
   }
@@ -84,7 +84,7 @@ load_countries <- function(file_name) {
 }
 
 load_covid_daily_reports <- function() {
-  path <- Sys.getenv('COVID_DAILY_REPORTS_PATH')
+  path <- Sys.getenv('COVID_DAILY_REPORTS_PATH', "data/csse_covid_19_daily_reports")
   
   if (!dir.exists(path)) {
     exit("Path does not exist! Please set COVID_DAILY_REPORTS_PATH.")
@@ -181,10 +181,38 @@ load_covid_daily_reports <- function() {
     )
 }
 
+# World population
+load_world_population <- function() {
+  path <- Sys.getenv('WORLD_POPULATION_PATH', "data/world_population/API_SP.POP.TOTL_DS2_en_csv_v2_887275.csv")
+  if (!file.exists(path)) {
+    stop("WORLD_POPULATION_PATH does not exist.")
+  }  
+  
+  col_names <- c("country_name", "country_code", "indicator_name", "indicator_code",
+                 1960:2019, "2020")
+  
+  col_types <- readr::cols(
+      .default = readr::col_double(),
+      country_name = readr::col_character(),
+      country_code = readr::col_character(),
+      indicator_name = readr::col_character(),
+      indicator_code = readr::col_character(),
+      `2019` = readr::col_skip(),
+      `2020` = readr::col_skip()
+  )
+  
+  df <- readr::read_csv(path, skip = 5, 
+                        col_names = col_names,
+                        col_types = col_types,
+    ) %>%
+    tidyr::pivot_longer(c(-country_name, -country_code, -indicator_name, -indicator_code), names_to = 'year')
+  df
+}
+
 #%% Load values into variables
 
 countries_names <- load_country_names()
-countries_files <- load_country_file_names()
+#countries_files <- load_country_file_names()
 countries_shapes <- load_countries("data/countries/ref-countries-2016-60m.shp/CNTR_RG_60M_2016_4326.shp.zip")
 
 covid_daily_reports <- load_covid_daily_reports()
@@ -254,6 +282,12 @@ covid_daily_reports_by_country_region %>%
     d_recovered = as.integer(dplyr::if_else(is.na(d_recovered), 0, d_recovered))
   )
 
+world_population <-
+load_world_population() %>%
+  dplyr::group_by(country_code) %>%
+  dplyr::summarize(population = dplyr::last(value)) %>%
+  dplyr::left_join(countries_names, by = c("country_code" = "ISO3_CODE"))
+
 # Set up themes for charts
 
 # Helper functions
@@ -284,5 +318,3 @@ theme_map <- function(...) {
     )
 }
 
-map_width <- 1024
-map_height <- 768

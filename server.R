@@ -15,15 +15,21 @@ function(input, output, session) {
     )
   
   map_data <-
-    countries_shapes %>%
+  countries_shapes %>%
     dplyr::left_join(covid_latest_by_country, by = 'CNTR_ID') %>% 
     dplyr::group_by(CNTR_ID) %>%
+    dplyr::left_join(world_population, by = 'CNTR_ID') %>%
+    dplyr::mutate(
+      f_confirmed = 100000 * confirmed / population,
+      f_deaths = 100000 * deaths / population,
+      f_recovered = 100000 * recovered / population
+    ) %>%
     dplyr::ungroup()
   
   countries_plot <-
   map_data %>% 
     ggplot2::ggplot() +
-    ggplot2::geom_sf(ggplot2::aes(geometry = geometry, fill = confirmed), size = 0.25) +
+    ggplot2::geom_sf(ggplot2::aes(geometry = geometry, fill = f_confirmed), size = 0.25) +
     ggplot2::coord_sf(crs = sf::st_crs('+proj=robin')) +
     viridis::scale_fill_viridis(option = "magma", direction = -1) +
     ggplot2::guides(
@@ -57,7 +63,7 @@ function(input, output, session) {
     map_data_with_colors <-
     map_data %>%
       dplyr::mutate(
-        confirmed_col = pal_func(confirmed)
+        confirmed_col = pal_func(f_confirmed)
       ) 
     
     output$interactive_map <- leaflet::renderLeaflet({

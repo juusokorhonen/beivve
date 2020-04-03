@@ -6,4 +6,4 @@ packrat/src/*
 .env
 rsconnect/*
 data/countries/*
-data/csse_covid_19_data/*
+data/csse_covid_19_daily_reports/*
