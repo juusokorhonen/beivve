@@ -213,7 +213,8 @@ load_world_population <- function() {
 
 countries_names <- load_country_names()
 #countries_files <- load_country_file_names()
-countries_shapes <- load_countries("data/countries/ref-countries-2016-60m.shp/CNTR_RG_60M_2016_4326.shp.zip")
+countries_dir <- Sys.getenv('COUNTRIES_PATH', "data/countries")
+countries_shapes <- load_countries(file.path(countries_dir, 'CNTR_RG_60M_2016_4326.shp.zip'))
 
 covid_daily_reports <- load_covid_daily_reports()
 
