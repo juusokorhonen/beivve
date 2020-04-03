@@ -6,7 +6,7 @@ dotenv::load_dot_env('.env')
 
 load_country_names <- function() {
   names_file <- Sys.getenv('COUNTRIES_NAMES_PATH')
-  readr::read_csv(names_file, skip = 1,
+  readr::read_csv(names_file, skip = 1, na = c("", "-"),
                   col_names = c('CNTR_ID', 'CNTR_NAME', 'NAME_ENGL', 'ISO3_CODE'),
                   col_types = c(
                       CNTR_ID = 'c',
@@ -193,14 +193,96 @@ covid_daily_reports_country_regions <-
 covid_daily_reports %>%
   dplyr::distinct(country_region)
 
+# Find regions without mapping
+#regions_without_mapping <-
+#covid_daily_reports_country_regions %>% 
+#  dplyr::full_join(countries_names, by = c("country_region" = "NAME_ENGL")) %>%
+#  dplyr::filter(is.na(CNTR_ID))
+
+manual_regions <-
+  readr::read_csv('data/manual_regions_mapping.csv', skip = 1,
+                  col_names = c("country_region", "CNTR_ID"), 
+                  col_types = readr::cols(
+                    country_region = readr::col_character(),
+                    CNTR_ID = readr::col_character()
+                  )) %>%
+  dplyr::left_join(countries_names, by = "CNTR_ID")
+
+# Store all possibilities in regions_mapping
+regions_mapping <-
+countries_names %>%
+  dplyr::bind_rows(manual_regions) %>%
+  dplyr::mutate(
+    country_region = dplyr::if_else(is.na(country_region), NAME_ENGL, country_region)
+  )
+  
+# Suppress regions within countires
 covid_daily_reports_by_country_region <-
 covid_daily_reports %>%
-  dplyr::group_by(date, country_region) %>%
+  dplyr::left_join(regions_mapping, by = "country_region") %>%
+  dplyr::group_by(date, CNTR_ID) %>%
   dplyr::summarise(
     confirmed = sum(confirmed, na.rm = TRUE),
     deaths = sum(deaths, na.rm = TRUE),
     recovered = sum(recovered, na.rm = TRUE)
-  )
+  ) %>%
+  dplyr::arrange(date) %>%
+  dplyr::ungroup()
   
-covid_daily_reports_country_regions %>%
-  left_join(by = )
+# Calculate daily changes
+covid_daily_reports_by_country_region_daily_changes <-
+covid_daily_reports_by_country_region %>% 
+  dplyr::group_by(CNTR_ID) %>%
+  dplyr::arrange(date) %>%
+  dplyr::mutate(
+    d_time = date - dplyr::lag(date, n = 1),
+    ddays = as.integer(d_time),
+    prev_confirmed = dplyr::lag(confirmed, default = 0, order_by = date),
+    d_confirmed = dplyr::if_else(prev_confirmed > confirmed, 0, (confirmed - prev_confirmed) / ddays),
+    prev_deaths = dplyr::lag(deaths, default = 0, order_by = date),
+    d_deaths = dplyr::if_else(prev_deaths > deaths, 0, (deaths - prev_deaths) / ddays),
+    prev_recovered = dplyr::lag(recovered, default = 0, order_by = date),
+    d_recovered = dplyr::if_else(prev_recovered > recovered, 0, (recovered - prev_recovered) / ddays),
+  ) %>%
+  dplyr::select(
+    -prev_confirmed, -prev_deaths, -prev_recovered, -ddays
+  ) %>%
+  dplyr::mutate(
+    d_time = dplyr::if_else(is.na(d_time), lubridate::as.difftime('0d'), d_time),
+    d_confirmed = as.integer(dplyr::if_else(is.na(d_confirmed), 0, d_confirmed)),
+    d_deaths = as.integer(dplyr::if_else(is.na(d_deaths), 0, d_deaths)),
+    d_recovered = as.integer(dplyr::if_else(is.na(d_recovered), 0, d_recovered))
+  )
+
+# Set up themes for charts
+
+# Helper functions
+pt_to_mm <- function(x) {
+  pt <- grid::unit(x, "pt")
+  grid::convertUnit(pt, "mm")
+}
+
+# Basic map theme thanks to https://timogrossenbacher.ch/2016/12/beautiful-thematic-maps-with-ggplot2-only/
+theme_map <- function(...) {
+  ggplot2::theme_minimal() +
+    ggplot2::theme(
+      text = ggplot2::element_text(family = "Fira Sans", color = "#22211d"),
+      axis.line = ggplot2::element_blank(),
+      axis.text.x = ggplot2::element_blank(),
+      axis.text.y = ggplot2::element_blank(),
+      axis.ticks = ggplot2::element_blank(),
+      axis.title.x = ggplot2::element_blank(),
+      axis.title.y = ggplot2::element_blank(),
+      #panel.grid.minor = ggplot2::element_line(color = "#ebebe5", size = 0.25),
+      panel.grid.major = ggplot2::element_line(color = "#ebebe5", size = 0.25),
+      panel.grid.minor = ggplot2::element_blank(),
+      plot.background = ggplot2::element_rect(fill = "#f5f5f2", color = NA), 
+      panel.background = ggplot2::element_rect(fill = "#f5f5f2", color = NA), 
+      legend.background = ggplot2::element_rect(fill = "#f5f5f2", color = NA),
+      panel.border = ggplot2::element_blank(),
+      ...
+    )
+}
+
+map_width <- 1024
+map_height <- 768

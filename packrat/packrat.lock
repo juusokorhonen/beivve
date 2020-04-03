@@ -5,8 +5,8 @@ Repos: CRAN=https://cran.rstudio.com/
 
 Package: BH
 Source: CRAN
-Version: 1.69.0-1
-Hash: 15f597ed227897f4f793b6161260f4b9
+Version: 1.72.0-3
+Hash: fc53be86f0b712d3de03fef95893d710
 
 Package: DBI
 Source: CRAN
@@ -77,6 +77,12 @@ Source: CRAN
 Version: 1.4-1
 Hash: 60a56e9998b8b58ee378db3dc91b27a5
 
+Package: colourvalues
+Source: CRAN
+Version: 0.3.4
+Hash: 00ecc9003f17914a8ff867afb59d4bfb
+Requires: BH, Rcpp
+
 Package: crayon
 Source: CRAN
 Version: 1.3.4
@@ -112,7 +118,7 @@ Hash: 519cd2bd051a57af796091379ee3ca69
 Package: dplyr
 Source: CRAN
 Version: 0.8.5
-Hash: 85c8ed5ccbce5c9dc8846e9939f73243
+Hash: b04720dca1f84bf50759fd5675c3c8c6
 Requires: BH, R6, Rcpp, assertthat, ellipsis, glue, magrittr,
     pkgconfig, plogr, rlang, tibble, tidyselect
 
@@ -190,7 +196,7 @@ Requires: htmltools, jsonlite, yaml
 Package: httpuv
 Source: CRAN
 Version: 1.5.2
-Hash: bedc97351732877695aa0f20e32d6ad9
+Hash: 42f06db3b84e7d2c85c74c3efd26149a
 Requires: BH, R6, Rcpp, later, promises
 
 Package: isoband
@@ -212,7 +218,7 @@ Hash: ecf589b42cd284b03a4beb9665482d3e
 Package: later
 Source: CRAN
 Version: 1.0.0
-Hash: 205ee1ecb9ea284441563fc014b45ece
+Hash: 8b3605e20cf6028907860015d13f6aa3
 Requires: BH, Rcpp, rlang
 
 Package: lazyeval
@@ -249,6 +255,17 @@ Package: magrittr
 Source: CRAN
 Version: 1.5
 Hash: bdc4d48c3135e8f3b399536ddf160df4
+
+Package: mapproj
+Source: CRAN
+Version: 1.2.7
+Hash: e9c2a09eb72688a0dccc22b4d47d625e
+Requires: maps
+
+Package: maps
+Source: CRAN
+Version: 3.3.0
+Hash: 0815ed94aca05c7aeb177ebddd4ee23b
 
 Package: maptools
 Source: CRAN
@@ -346,7 +363,7 @@ Requires: R6, ps
 Package: promises
 Source: CRAN
 Version: 1.1.0
-Hash: 0404586e7e8dff0de5fde4a65f37e39b
+Hash: 6af2d6c0640204791cd67883457b1e49
 Requires: R6, Rcpp, later, magrittr, rlang
 
 Package: ps
@@ -369,7 +386,7 @@ Requires: Rcpp, sp
 Package: readr
 Source: CRAN
 Version: 1.3.1
-Hash: c45e5ec73f9bf1d1bdc1e4c6e6a87011
+Hash: 340c6a37a16cdbee99ceb559b3188ba8
 Requires: BH, R6, Rcpp, clipr, crayon, hms, tibble
 
 Package: rgdal
@@ -459,6 +476,13 @@ Version: 3.0.0
 Hash: 2a6d1094f2ebc4c8ebc01ef0b2b1a10a
 Requires: cli, crayon, ellipsis, fansi, lifecycle, magrittr, pillar,
     pkgconfig, rlang, vctrs
+
+Package: tidyr
+Source: CRAN
+Version: 1.0.2
+Hash: 2d94e585340de994793831859f87e3f4
+Requires: Rcpp, dplyr, ellipsis, glue, lifecycle, magrittr, purrr,
+    rlang, stringi, tibble, tidyselect, vctrs
 
 Package: tidyselect
 Source: CRAN

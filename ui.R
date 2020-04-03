@@ -3,10 +3,11 @@ library(shiny)
 # Define UI for application that draws a histogram
 fluidPage(
   # Application title
-  titlePanel("Leaflet map test2"),
-  
-  shiny::plotOutput("test_map_2"),
-  leaflet::leafletOutput("test_map"),
-  
+  titlePanel("COVID-19 dashboard"),
+  plotOutput(
+    "map", 
+    hover = "map_hover"),
+  verbatimTextOutput("info"),
+  leaflet::leafletOutput("interactive_map"),
   p()
 )
