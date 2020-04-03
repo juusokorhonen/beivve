@@ -437,6 +437,12 @@ Hash: 7a1d8725849ecb792b4df2c084769c23
 Requires: R6, crayon, digest, fastmap, htmltools, httpuv, jsonlite,
     later, mime, promises, rlang, sourcetools, xtable
 
+Package: shinythemes
+Source: CRAN
+Version: 1.1.2
+Hash: b5eb2598708219fdfd4dcd65dae6d318
+Requires: shiny
+
 Package: sourcetools
 Source: CRAN
 Version: 0.1.7
