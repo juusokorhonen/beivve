@@ -5,3 +5,5 @@ packrat/src/*
 .Rhistory
 .env
 rsconnect/*
+data/countries/*
+data/csse_covid_19_data/*
