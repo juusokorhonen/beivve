@@ -12,7 +12,7 @@ ui <- fluidPage(theme = shinytheme("slate"),
                   column(3,
                          wellPanel(
                            sliderInput("date", "Date:",  
-                                       min = earliestData, max = latestData(), value = latestData(),
+                                       min = earliestData(), max = latestData(), value = latestData(),
                                        timeFormat = "%F")
                          ),
                          selectInput("data_type", 
@@ -48,8 +48,7 @@ ui <- fluidPage(theme = shinytheme("slate"),
 # Define server logic required to draw a histogram
 server <- function(input, output) {
   
-  output$map <- renderPlot(
-    {
+    output$map <- renderPlot({
       covid_daily_data_by_region %>%
         dplyr::filter(
           data_type == input$data_type,
@@ -77,22 +76,13 @@ server <- function(input, output) {
         ) 
     })
     
-    output$chart <- renderPlot(
-      {
-        covid_daily_data %>%
-          dplyr::filter(
-            data_type == input$data_type,
-            CNTR_ID == input$country,
-            !is.na(value)
-          ) %>%
-          ggplot2::ggplot(ggplot2::aes(x = date, y = value)) +
-          ggplot2::geom_line() + 
-          #ggplot2::geom_vline(xintercept = input$date, linetype = 2) +
-          ggplot2::ggtitle(paste(input$country, input$data_type)) +
-          ggplot2::labs(x = "Date", y = input$data_type) +
-          ggplot2::scale_y_continuous(trans = "log")
-      }
-    )
+    output$chart <- renderPlot({
+      covid_daily_data_by_region %>%
+        ggplot2::ggplot(ggplot2::aes(x = date, y = value)) +
+        ggplot2::geom_line() + 
+        ggplot2::ggtitle(paste(input$country, input$data_type)) +
+        ggplot2::labs(x = "Date", y = input$data_type) 
+    })
     
     output$info <- renderText({
       paste0("x=", input$map_click$x, "\ny=", input$map_click$y)

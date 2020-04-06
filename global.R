@@ -244,45 +244,6 @@ countries_names %>%
   dplyr::mutate(
     country_region = dplyr::if_else(is.na(country_region), NAME_ENGL, country_region)
   )
-  
-# Suppress regions within countires
-covid_daily_reports_by_country_region <-
-covid_daily_reports %>%
-  dplyr::left_join(regions_mapping, by = "country_region") %>%
-  dplyr::group_by(date, CNTR_ID) %>%
-  dplyr::summarise(
-    confirmed = sum(confirmed, na.rm = TRUE),
-    deaths = sum(deaths, na.rm = TRUE),
-    recovered = sum(recovered, na.rm = TRUE)
-  ) %>%
-  dplyr::arrange(date) %>%
-  dplyr::ungroup()
-  
-# Calculate daily changes
-covid_daily_reports_by_country_region_daily_changes <-
-covid_daily_reports_by_country_region %>% 
-  dplyr::group_by(CNTR_ID) %>%
-  dplyr::arrange(date) %>%
-  dplyr::mutate(
-    d_time = date - dplyr::lag(date, n = 1),
-    ddays = as.integer(d_time),
-    prev_confirmed = dplyr::lag(confirmed, default = 0, order_by = date),
-    d_confirmed = dplyr::if_else(prev_confirmed > confirmed, 0, (confirmed - prev_confirmed) / ddays),
-    prev_deaths = dplyr::lag(deaths, default = 0, order_by = date),
-    d_deaths = dplyr::if_else(prev_deaths > deaths, 0, (deaths - prev_deaths) / ddays),
-    prev_recovered = dplyr::lag(recovered, default = 0, order_by = date),
-    d_recovered = dplyr::if_else(prev_recovered > recovered, 0, (recovered - prev_recovered) / ddays),
-  ) %>%
-  dplyr::select(
-    -prev_confirmed, -prev_deaths, -prev_recovered, -ddays
-  ) %>%
-  dplyr::mutate(
-    d_time = dplyr::if_else(is.na(d_time), lubridate::as.difftime('0d'), d_time),
-    d_confirmed = as.integer(dplyr::if_else(is.na(d_confirmed), 0, d_confirmed)),
-    d_deaths = as.integer(dplyr::if_else(is.na(d_deaths), 0, d_deaths)),
-    d_recovered = as.integer(dplyr::if_else(is.na(d_recovered), 0, d_recovered))
-  ) %>%
-  dplyr::ungroup()
 
 world_population <-
 load_world_population() %>%
@@ -296,7 +257,7 @@ dates <- data.frame(date = seq(covid_daily_reports$date %>% min(), lubridate::to
 # !!! Daily data
 covid_daily_data <-
   covid_daily_reports %>%
-    dplyr::arrange(date) %>%
+    dplyr::arrange(date) %>% 
     dplyr::mutate(province_state = dplyr::na_if(province_state, "None")) %>% 
     dplyr::left_join(regions_mapping, by = "country_region") %>% 
     dplyr::select(date, CNTR_ID, ISO3_CODE, NAME_ENGL, country_region, province_state, confirmed, deaths, recovered) %>% 
@@ -305,30 +266,28 @@ covid_daily_data <-
     dplyr::filter(!is.na(CNTR_ID)) %>%   # NOTE: Fixes situation where there are no data for given date
     dplyr::select(date, CNTR_ID, ISO3_CODE, NAME_ENGL, country_region, province_state, confirmed, deaths, recovered) %>% 
     tidyr::complete(date, tidyr::nesting(CNTR_ID, ISO3_CODE, NAME_ENGL, country_region, province_state)) %>% 
-    tidyr::fill(-date, -CNTR_ID, -ISO3_CODE, -NAME_ENGL, .direction = 'down') %>% 
+    dplyr::group_by(CNTR_ID) %>%
+    dplyr::arrange(date) %>% 
+    tidyr::fill(confirmed, deaths, recovered, .direction = 'down') %>% 
+    dplyr::ungroup() %>%
     tidyr::replace_na(list(confirmed = 0, deaths = 0, recovered = 0)) %>% 
-    dplyr::left_join(world_population %>% dplyr::select(CNTR_ID, population), by = 'CNTR_ID') %>% 
     dplyr::mutate(
-      f_confirmed = confirmed / population,
-      f_deaths = deaths / population,
-      f_recovered = recovered / population,
       d_confirmed = confirmed / dplyr::lag(confirmed, n=1),
       d_deaths = deaths / dplyr::lag(deaths, n=1),
       d_recovered = recovered / dplyr::lag(recovered, n=1)
     ) %>% 
     tidyr::replace_na(list(d_confirmed = 0, d_deaths = 0, d_recovered = 0)) %>% 
-    dplyr::select(-population) %>%
     tidyr::pivot_longer(c(confirmed, deaths, recovered,
-                          d_confirmed, d_deaths, d_recovered,
-                          f_confirmed, f_deaths, f_recovered), names_to = "data_type")
+                          d_confirmed, d_deaths, d_recovered), names_to = "data_type")
+    
   
   
 # !!! Daily data aggregated by region
 covid_daily_data_by_region <-
   covid_daily_data %>%
-  dplyr::group_by(date, CNTR_ID, NAME_ENGL, data_type) %>%
+  dplyr::group_by(date, CNTR_ID, data_type) %>%
   dplyr::summarise(value = sum(value)) %>%
-  dplyr::ungroup()
+  dplyr::ungroup() 
 
 # Set up themes for charts
 
@@ -372,4 +331,3 @@ theme_map <- function(...) {
       ...
     )
 }
-
