@@ -20,8 +20,7 @@ function(input, output, session) {
   
   output$map <- renderPlot(
     {
-      countries_shapes %>%
-        dplyr::left_join(map_data, by = 'CNTR_ID') %>%
+      map_data %>%
         dplyr::filter(
           data_type == input$data_type,
           date <= input$date
@@ -32,6 +31,7 @@ function(input, output, session) {
           value = dplyr::last(value)
         ) %>%
         dplyr::ungroup() %>%
+        dplyr::right_join(countries_shapes, by = 'CNTR_ID') %>%
         ggplot2::ggplot() +
         ggplot2::geom_sf(ggplot2::aes(geometry = geometry, fill = value), size = 0.25) +
         ggplot2::coord_sf(crs = sf::st_crs('+proj=robin')) +
@@ -47,14 +47,30 @@ function(input, output, session) {
             title.hjust = 0.5,
             label.hjust = 0.5
           )) +
+        ggplot2::ggtitle(paste(input$data_type)) +
         theme_map(
           legend.position = "bottom"
-        )
+        ) 
     })
     
+    output$chart <- renderPlot(
+      {
+        map_data %>%
+          dplyr::filter(
+            data_type == input$data_type,
+            CNTR_ID == input$country,
+            !is.na(value)
+          ) %>%
+          ggplot2::ggplot(ggplot2::aes(x = date, y = value)) +
+          ggplot2::geom_line() + 
+          ggplot2::geom_vline(xintercept = input$date, linetype = 2) +
+          ggplot2::ggtitle(paste(input$country, input$data_type)) +
+          ggplot2::labs(x = "Date", y = input$data_type)
+      }
+    )
     
     output$info <- renderText({
-      paste0("x=", input$map_hover$x, "\ny=", input$map_hover$y)
+      paste0("x=", input$map_click$x, "\ny=", input$map_click$y)
     })
     
     # # Disabled for now
@@ -85,3 +101,11 @@ function(input, output, session) {
     # map_data_with_colors %>%
     #   dplyr::select(confirmed_col)
 }
+
+# map_data %>%
+#   dplyr::filter(
+#     data_type == "confirmed",
+#     CNTR_ID == "FI",
+#     !is.na(value)
+#   ) %>%
+# head()

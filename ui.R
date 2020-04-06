@@ -17,24 +17,33 @@ fluidPage(theme = shinytheme("slate"),
            ),
            selectInput("data_type", 
                        label = "Choose a variable to display",
-                       choices = list("confirmed", 
-                                      "deaths",
-                                      "recovered", 
-                                      "f_confirmed",
-                                      "f_deathrs",
-                                      "f_recovered"),
-                       selected = "confirmed"),
-           
+                       choices = list("Confirmed" = "confirmed", 
+                                      "Deaths" = "deaths",
+                                      "Recovered" = "recovered", 
+                                      "Recovered / population" = "f_confirmed",
+                                      "Deaths / population" = "f_deaths",
+                                      "Recovered / population" = "f_recovered"),
+                       selected = "confirmed")
     ),
     column(6,
       plotOutput(
         "map", 
-        hover = "map_hover"),
-      verbatimTextOutput("info")
+        click = "map_click"),
+      verbatimTextOutput("info"),
+      plotOutput(
+        "chart"
+      )
       #leaflet::leafletOutput("interactive_map"),   # Enable on will
     ),
     column(3,
-          p("Hello")
+       selectInput("country", 
+                   label = "Choose a country for analysis",
+                   choices = list(
+                     "Finland" = "FI",
+                     "China" = "CN",
+                     "USA" = "US"
+                    ),
+                   selected = "confirmed"),
     )
   )
 )
