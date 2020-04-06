@@ -12,7 +12,7 @@ ui <- fluidPage(theme = shinytheme("slate"),
                   column(3,
                          wellPanel(
                            sliderInput("date", "Date:",  
-                                       min = earliestData, max = latestData(), value = latestData(),
+                                       min = earliestData(), max = latestData(), value = latestData(),
                                        timeFormat = "%F")
                          ),
                          selectInput("data_type", 
@@ -38,6 +38,7 @@ ui <- fluidPage(theme = shinytheme("slate"),
                                      choices = list(
                                        "Finland" = "FI",
                                        "China" = "CN",
+                                       "Brazil" = "BR",
                                        "USA" = "US"
                                      ),
                                      selected = "confirmed"),
