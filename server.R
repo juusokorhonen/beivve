@@ -1,36 +1,60 @@
 library(magrittr)
 library(shiny)
+library(shinythemes)
 source("./global.R")
 
+# Define UI
+ui <- fluidPage(theme = shinytheme("slate"),
+                # Application title
+                titlePanel("COVID-19 dashboard"),
+                
+                fluidRow(
+                  column(3,
+                         wellPanel(
+                           sliderInput("date", "Date:",  
+                                       min = earliestData, max = latestData(), value = latestData(),
+                                       timeFormat = "%F")
+                         ),
+                         selectInput("data_type", 
+                                     label = "Choose a variable to display",
+                                     choices = list("Confirmed" = "confirmed", 
+                                                    "Deaths" = "deaths",
+                                                    "Recovered" = "recovered"),
+                                     selected = "confirmed")
+                  ),
+                  column(6,
+                         plotOutput(
+                           "map", 
+                           click = "map_click"),
+                         verbatimTextOutput("info"),
+                         plotOutput(
+                           "chart"
+                         )
+                         #leaflet::leafletOutput("interactive_map"),   # Enable on will
+                  ),
+                  column(3,
+                         selectInput("country", 
+                                     label = "Choose a country for analysis",
+                                     choices = list(
+                                       "Finland" = "FI",
+                                       "China" = "CN",
+                                       "USA" = "US"
+                                     ),
+                                     selected = "confirmed"),
+                  )
+                )
+)
+
 # Define server logic required to draw a histogram
-function(input, output, session) {
-  map_data <-
-    covid_daily_reports_by_country_region_daily_changes %>%
-    dplyr::group_by(CNTR_ID) %>%
-    dplyr::left_join(world_population, by = 'CNTR_ID') %>%
-    dplyr::mutate(
-      f_confirmed = 100000 * confirmed / population,
-      f_deaths = 100000 * deaths / population,
-      f_recovered = 100000 * recovered / population
-    ) %>%
-    dplyr::ungroup() %>%
-    tidyr::pivot_longer(cols = c('confirmed', 'deaths', 'recovered', 
-                                 'f_confirmed', 'f_deaths', 'f_recovered'),
-                        names_to = 'data_type')
+server <- function(input, output) {
   
   output$map <- renderPlot(
     {
-      map_data %>%
+      covid_daily_data_by_region %>%
         dplyr::filter(
           data_type == input$data_type,
-          date <= input$date
+          date == input$date
         ) %>%
-        dplyr::arrange(date) %>%
-        dplyr::group_by(CNTR_ID, date, data_type) %>%
-        dplyr::summarise(
-          value = dplyr::last(value)
-        ) %>%
-        dplyr::ungroup() %>%
         dplyr::right_join(countries_shapes, by = 'CNTR_ID') %>%
         ggplot2::ggplot() +
         ggplot2::geom_sf(ggplot2::aes(geometry = geometry, fill = value), size = 0.25) +
@@ -55,7 +79,7 @@ function(input, output, session) {
     
     output$chart <- renderPlot(
       {
-        map_data %>%
+        covid_daily_data %>%
           dplyr::filter(
             data_type == input$data_type,
             CNTR_ID == input$country,
@@ -63,9 +87,10 @@ function(input, output, session) {
           ) %>%
           ggplot2::ggplot(ggplot2::aes(x = date, y = value)) +
           ggplot2::geom_line() + 
-          ggplot2::geom_vline(xintercept = input$date, linetype = 2) +
+          #ggplot2::geom_vline(xintercept = input$date, linetype = 2) +
           ggplot2::ggtitle(paste(input$country, input$data_type)) +
-          ggplot2::labs(x = "Date", y = input$data_type)
+          ggplot2::labs(x = "Date", y = input$data_type) +
+          ggplot2::scale_y_continuous(trans = "log")
       }
     )
     
@@ -102,10 +127,5 @@ function(input, output, session) {
     #   dplyr::select(confirmed_col)
 }
 
-# map_data %>%
-#   dplyr::filter(
-#     data_type == "confirmed",
-#     CNTR_ID == "FI",
-#     !is.na(value)
-#   ) %>%
-# head()
+# Run
+shinyApp(ui, server)

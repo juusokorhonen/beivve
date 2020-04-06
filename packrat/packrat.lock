@@ -13,6 +13,18 @@ Source: CRAN
 Version: 1.1.0
 Hash: d1075050684753e939c45775617c8f38
 
+Package: PerformanceAnalytics
+Source: CRAN
+Version: 2.0.4
+Hash: cbc062943828ebdf5b5ad7446a2802d0
+Requires: quadprog, xts, zoo
+
+Package: Quandl
+Source: CRAN
+Version: 2.10.0
+Hash: a0d9b6e27948a2163954d93accd1a03f
+Requires: httr, jsonlite, xts, zoo
+
 Package: R6
 Source: CRAN
 Version: 2.4.0
@@ -27,6 +39,24 @@ Package: Rcpp
 Source: CRAN
 Version: 1.0.2
 Hash: d04e441a8d398e3d3a71f294c07fa94d
+
+Package: SQUAREM
+Source: CRAN
+Version: 2020.2
+Hash: 1d70a43c52b2210287e0761706a8f363
+
+Package: TTR
+Source: CRAN
+Version: 0.23-6
+Hash: ecd99f4703f96b3da329010465aaddde
+Requires: curl, xts, zoo
+
+Package: alphavantager
+Source: CRAN
+Version: 0.1.2
+Hash: fd8ec9efb81b0d7f2aa174d676d8ce7b
+Requires: dplyr, glue, httr, jsonlite, purrr, readr, stringr, tibble,
+    tidyr, timetk
 
 Package: askpass
 Source: CRAN
@@ -153,6 +183,11 @@ Source: CRAN
 Version: 1.0.1
 Hash: d272cd728e4095b3964181b44763f46c
 
+Package: generics
+Source: CRAN
+Version: 0.0.2
+Hash: 4aaf002dd434e8c854611c5d11a1d58e
+
 Package: ggplot2
 Source: CRAN
 Version: 3.3.0
@@ -163,6 +198,11 @@ Package: glue
 Source: CRAN
 Version: 1.3.2
 Hash: fb50a5bde4eab383b1307003bbac25dd
+
+Package: gower
+Source: CRAN
+Version: 0.2.1
+Hash: 78074d895bfaf6e4c1269d9f1f3c398d
 
 Package: gridExtra
 Source: CRAN
@@ -199,6 +239,18 @@ Version: 1.5.2
 Hash: 42f06db3b84e7d2c85c74c3efd26149a
 Requires: BH, R6, Rcpp, later, promises
 
+Package: httr
+Source: CRAN
+Version: 1.4.1
+Hash: cc16de93eaabd3c6d0785cb8e6d059ab
+Requires: R6, curl, jsonlite, mime, openssl
+
+Package: ipred
+Source: CRAN
+Version: 0.9-9
+Hash: e5c991ba37200040672dc0dc06b0a180
+Requires: prodlim
+
 Package: isoband
 Source: CRAN
 Version: 0.2.0
@@ -220,6 +272,12 @@ Source: CRAN
 Version: 1.0.0
 Hash: 8b3605e20cf6028907860015d13f6aa3
 Requires: BH, Rcpp, rlang
+
+Package: lava
+Source: CRAN
+Version: 1.6.7
+Hash: 132a512c19a08b8c4e06c5e13694cae2
+Requires: SQUAREM, numDeriv
 
 Package: lazyeval
 Source: CRAN
@@ -290,6 +348,11 @@ Version: 0.5.0
 Hash: 38d0efee9bb99bef143bde41c4ce715c
 Requires: colorspace
 
+Package: numDeriv
+Source: CRAN
+Version: 2016.8-1.1
+Hash: 4655a089f4d8b80268adaf83d6cd5fb2
+
 Package: openssl
 Source: CRAN
 Version: 1.4.1
@@ -304,6 +367,12 @@ GithubRepo: packrat
 GithubUsername: rstudio
 GithubRef: master
 GithubSha1: 448aafd176ec6cbde307f556c91b39e5a1c94f9d
+
+Package: padr
+Source: CRAN
+Version: 0.5.1
+Hash: 9efa390b3db1b656e156ed141f8326a7
+Requires: Rcpp, dplyr, lubridate, rlang
 
 Package: pillar
 Source: CRAN
@@ -360,6 +429,12 @@ Version: 3.4.2
 Hash: e1671b1ca2f6c66f29ffb2828e98dc02
 Requires: R6, ps
 
+Package: prodlim
+Source: CRAN
+Version: 2019.11.13
+Hash: ad657ffdd56b17e490577a24fb670f31
+Requires: Rcpp, lava
+
 Package: promises
 Source: CRAN
 Version: 1.1.0
@@ -377,6 +452,17 @@ Version: 0.3.3
 Hash: d4f497f8a97ef6c7182a87b2476748d1
 Requires: magrittr, rlang
 
+Package: quadprog
+Source: CRAN
+Version: 1.5-8
+Hash: 2be0e6327ae246d71c0e19f510692dfc
+
+Package: quantmod
+Source: CRAN
+Version: 0.4.17
+Hash: 6aadbd45adc8116a95dc16ed3add2715
+Requires: TTR, curl, xts, zoo
+
 Package: raster
 Source: CRAN
 Version: 3.0-12
@@ -389,11 +475,24 @@ Version: 1.3.1
 Hash: 340c6a37a16cdbee99ceb559b3188ba8
 Requires: BH, R6, Rcpp, clipr, crayon, hms, tibble
 
+Package: recipes
+Source: CRAN
+Version: 0.1.10
+Hash: 5559d4b0f143c72f1413dd46e1ec72c0
+Requires: dplyr, generics, glue, gower, ipred, lubridate, magrittr,
+    purrr, rlang, tibble, tidyr, tidyselect, timeDate, withr
+
 Package: rgdal
 Source: CRAN
 Version: 1.4-8
 Hash: bff6f6bbb137f645fd789f7eab0f05b9
 Requires: sp
+
+Package: riingo
+Source: CRAN
+Version: 0.2.0
+Hash: 4e7bdbda7aa6dce3f23d16d3d4910784
+Requires: crayon, dplyr, glue, httr, jsonlite, purrr, rlang, tibble
 
 Package: rlang
 Source: CRAN
@@ -483,6 +582,15 @@ Hash: 2a6d1094f2ebc4c8ebc01ef0b2b1a10a
 Requires: cli, crayon, ellipsis, fansi, lifecycle, magrittr, pillar,
     pkgconfig, rlang, vctrs
 
+Package: tidyquant
+Source: CRAN
+Version: 1.0.0
+Hash: 48c94116d6b68a4f3615cc4a4fe40a24
+Requires: PerformanceAnalytics, Quandl, TTR, alphavantager, cli,
+    crayon, dplyr, ggplot2, httr, lazyeval, lubridate, magrittr, purrr,
+    quantmod, riingo, rlang, rstudioapi, stringr, tibble, tidyr,
+    tidyselect, timeDate, timetk, xml2, xts
+
 Package: tidyr
 Source: CRAN
 Version: 1.0.2
@@ -495,6 +603,18 @@ Source: CRAN
 Version: 1.0.0
 Hash: 0ba21f624978533adf670338aa3f86b4
 Requires: ellipsis, glue, purrr, rlang, vctrs
+
+Package: timeDate
+Source: CRAN
+Version: 3043.102
+Hash: bf9c128558c5730c3fbaf9ea5196e4bc
+
+Package: timetk
+Source: CRAN
+Version: 0.1.3
+Hash: ce50e6e2be217b8bf9e7ab94b1fee419
+Requires: dplyr, lazyeval, lubridate, padr, purrr, readr, recipes,
+    rlang, stringi, tibble, tidyr, xts, zoo
 
 Package: units
 Source: CRAN
@@ -534,12 +654,28 @@ Source: CRAN
 Version: 0.12
 Hash: 1c81f85035dee1e1bf48e09a57928c9b
 
+Package: xml2
+Source: CRAN
+Version: 1.3.0
+Hash: 8c72649c005bbf9b0420daf86b1ad69a
+
 Package: xtable
 Source: CRAN
 Version: 1.8-4
 Hash: dc0d47261b678d26032363bebd050540
 
+Package: xts
+Source: CRAN
+Version: 0.12-0
+Hash: 44a97ea0592b91a5ba6851df01f5bb9f
+Requires: zoo
+
 Package: yaml
 Source: CRAN
 Version: 2.2.1
 Hash: 424bc11cc358f23187feaa7978628196
+
+Package: zoo
+Source: CRAN
+Version: 1.8-7
+Hash: d333d9408647b5fc153dc5817b3ad0fe

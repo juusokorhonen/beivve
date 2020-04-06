@@ -281,7 +281,8 @@ covid_daily_reports_by_country_region %>%
     d_confirmed = as.integer(dplyr::if_else(is.na(d_confirmed), 0, d_confirmed)),
     d_deaths = as.integer(dplyr::if_else(is.na(d_deaths), 0, d_deaths)),
     d_recovered = as.integer(dplyr::if_else(is.na(d_recovered), 0, d_recovered))
-  )
+  ) %>%
+  dplyr::ungroup()
 
 world_population <-
 load_world_population() %>%
@@ -289,9 +290,62 @@ load_world_population() %>%
   dplyr::summarize(population = dplyr::last(value)) %>%
   dplyr::left_join(countries_names, by = c("country_code" = "ISO3_CODE"))
 
+# All dates from start of data to today
+dates <- data.frame(date = seq(covid_daily_reports$date %>% min(), lubridate::today(), by='days'))
+
+# !!! Daily data
+covid_daily_data <-
+  covid_daily_reports %>%
+    dplyr::arrange(date) %>%
+    dplyr::mutate(province_state = dplyr::na_if(province_state, "None")) %>% 
+    dplyr::left_join(regions_mapping, by = "country_region") %>% 
+    dplyr::select(date, CNTR_ID, ISO3_CODE, NAME_ENGL, country_region, province_state, confirmed, deaths, recovered) %>% 
+    #dplyr::mutate(CNTR_ID = as.factor(CNTR_ID)) %>%
+    dplyr::right_join(dates, by = 'date') %>%   ## Fill in missing dates
+    dplyr::filter(!is.na(CNTR_ID)) %>%   # NOTE: Fixes situation where there are no data for given date
+    dplyr::select(date, CNTR_ID, ISO3_CODE, NAME_ENGL, country_region, province_state, confirmed, deaths, recovered) %>% 
+    tidyr::complete(date, tidyr::nesting(CNTR_ID, ISO3_CODE, NAME_ENGL, country_region, province_state)) %>% 
+    tidyr::fill(-date, -CNTR_ID, -ISO3_CODE, -NAME_ENGL, .direction = 'down') %>% 
+    tidyr::replace_na(list(confirmed = 0, deaths = 0, recovered = 0)) %>% 
+    dplyr::left_join(world_population %>% dplyr::select(CNTR_ID, population), by = 'CNTR_ID') %>% 
+    dplyr::mutate(
+      f_confirmed = confirmed / population,
+      f_deaths = deaths / population,
+      f_recovered = recovered / population,
+      d_confirmed = confirmed / dplyr::lag(confirmed, n=1),
+      d_deaths = deaths / dplyr::lag(deaths, n=1),
+      d_recovered = recovered / dplyr::lag(recovered, n=1)
+    ) %>% 
+    tidyr::replace_na(list(d_confirmed = 0, d_deaths = 0, d_recovered = 0)) %>% 
+    dplyr::select(-population) %>%
+    tidyr::pivot_longer(c(confirmed, deaths, recovered,
+                          d_confirmed, d_deaths, d_recovered,
+                          f_confirmed, f_deaths, f_recovered), names_to = "data_type")
+  
+  
+# !!! Daily data aggregated by region
+covid_daily_data_by_region <-
+  covid_daily_data %>%
+  dplyr::group_by(date, CNTR_ID, NAME_ENGL, data_type) %>%
+  dplyr::summarise(value = sum(value)) %>%
+  dplyr::ungroup()
+
 # Set up themes for charts
 
 # Helper functions
+
+earliestData <- function() {
+  covid_daily_data_by_region$date %>% min()
+}
+
+latestData <- function() {
+  covid_daily_data_by_region$date %>% max()
+}
+
+today <- function() {
+  lubridate::now("GMT") %>% lubridate::date()
+}
+
 pt_to_mm <- function(x) {
   pt <- grid::unit(x, "pt")
   grid::convertUnit(pt, "mm")
