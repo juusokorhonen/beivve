@@ -38,6 +38,7 @@ ui <- fluidPage(theme = shinytheme("slate"),
                                      choices = list(
                                        "Finland" = "FI",
                                        "China" = "CN",
+                                       "Brazil" = "BR",
                                        "USA" = "US"
                                      ),
                                      selected = "confirmed"),
