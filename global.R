@@ -364,7 +364,7 @@ covid_daily_data <- function(force_update = FALSE) {
   db$covid_daily_data
 }
   
-covid_daily_data_by_country <- function(force_update = FALSE) {
+covid_daily_data_by_country <- function(aggregate = TRUE, force_update = FALSE) {
   #' COVID-19 daily data aggregated by country
   #' @return -- Dataframe
   db <- database()
@@ -375,7 +375,14 @@ covid_daily_data_by_country <- function(force_update = FALSE) {
         dplyr::summarise(value = sum(value)) %>%
         dplyr::ungroup() 
   }
-  db$covid_daily_data_by_country
+  if (aggregate) {
+    db$covid_daily_data_by_country %>%
+      dplyr::group_by(date, CNTR_ID, ISO3_CODE, NAME_ENGL, data_type) %>%
+      dplyr::summarise_if(is.numeric, sum) %>%
+      dplyr::ungroup()
+  } else {
+    db$covid_daily_data_by_country 
+  }
 }
 
 covid_daily_data_for_country <- function(country, aggregate = TRUE, force_update = FALSE) {
@@ -383,17 +390,8 @@ covid_daily_data_for_country <- function(country, aggregate = TRUE, force_update
   #' @param country -- Two letter ID for country
   #' @param aggregate -- If TRUE regions within the country are aggregated together
   #' @return -- Dataframe
-  data <- 
-    covid_daily_data_by_country(force_update) %>%
+  covid_daily_data_by_country(aggregate = aggregate, force_update = force_update) %>%
     dplyr::filter(CNTR_ID == country)
-  if (aggregate) {
-    data <- 
-      data %>%
-        dplyr::group_by(date, CNTR_ID, ISO3_CODE, NAME_ENGL, data_type) %>%
-        dplyr::summarise_if(is.numeric, sum) %>%
-        dplyr::ungroup()
-  }
-  data
 }
 
 earliestDate <- function(country = NULL) {

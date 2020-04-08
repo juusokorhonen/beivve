@@ -12,7 +12,7 @@ ui <- fluidPage(theme = shinytheme("slate"),
                   column(3,
                          wellPanel(
                            sliderInput("date", "Date:",  
-                                       min = earliestData(), max = latestData(), value = latestData(),
+                                       min = earliestDate(), max = latestDate(), value = latestDate(),
                                        timeFormat = "%F")
                          ),
                          selectInput("data_type", 
@@ -50,12 +50,12 @@ ui <- fluidPage(theme = shinytheme("slate"),
 server <- function(input, output) {
   
     output$map <- renderPlot({
-      covid_daily_data_by_region %>%
+      covid_daily_data_by_country() %>%
         dplyr::filter(
           data_type == input$data_type,
           date == input$date
         ) %>%
-        dplyr::right_join(countries_shapes, by = 'CNTR_ID') %>%
+        dplyr::right_join(country_shapes(), on = CNTR_ID) %>%
         ggplot2::ggplot() +
         ggplot2::geom_sf(ggplot2::aes(geometry = geometry, fill = value), size = 0.25) +
         ggplot2::coord_sf(crs = sf::st_crs('+proj=robin')) +
@@ -78,7 +78,7 @@ server <- function(input, output) {
     })
     
     output$chart <- renderPlot({
-      covid_daily_data_by_region %>%
+      covid_daily_data_by_country(input$country) %>%
         ggplot2::ggplot(ggplot2::aes(x = date, y = value)) +
         ggplot2::geom_line() + 
         ggplot2::ggtitle(paste(input$country, input$data_type)) +
