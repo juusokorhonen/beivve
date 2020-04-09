@@ -96,6 +96,12 @@ proto_map <- function(force_update = FALSE) {
   proto_map_
 }
 
+map_choropleth <- function(date, country, data_type) {
+    list(
+      
+    )
+}
+
 # Define UI
 ui <- fluidPage(theme = shinytheme("slate"),
                 # Application title
@@ -115,6 +121,14 @@ ui <- fluidPage(theme = shinytheme("slate"),
                   ),
                   column(2,
                          wellPanel(
+                           selectInput("map_style", 
+                                       label = "Choose visualization style",
+                                       choices = list(
+                                         "Choropleth" = "choropleth",
+                                         "Bubble" = "bubble"
+                                       ),
+                                       selected = 'choropleth'
+                           ),
                            sliderInput("date", "Date:",  
                                        min = earliestDate(), max = latestDate(), value = latestDate(),
                                        timeFormat = "%F"),
@@ -132,7 +146,7 @@ ui <- fluidPage(theme = shinytheme("slate"),
                                 "Brazil" = "BR",
                                 "USA" = "US"
                               ),
-                              selected = "confirmed")
+                              selected = "CN")
                       )
                   )
                 )
@@ -142,26 +156,60 @@ ui <- fluidPage(theme = shinytheme("slate"),
 server <- function(input, output) {
   
     output$map <- renderPlot({
-      proto_map() +
-        ggplot2::geom_sf(
-          data = (
-            country_shapes() %>%
-              dplyr::inner_join(covid_daily_data_by_country() %>%
-                                  dplyr::filter(
-                                    date == input$date,
-                                    data_type == input$data_type
-                                  ), by = c("CNTR_ID", "ISO3_CODE", "NAME_ENGL")) %>%
-              dplyr::mutate(
-                lty = as.character(dplyr::if_else(CNTR_ID == input$country, "solid", "blank")),
-                lcol = as.character(dplyr::if_else(CNTR_ID == input$country, "#a59329", "#f0f8ff")),
-                lw = as.numeric(dplyr::if_else(CNTR_ID == input$country, 1,0, 0.25)))
-            ), ggplot2::aes(geometry = geometry, color = lcol, size = lw, fill = value), alpha = 1.0, 
+      (
+        proto_map() +
+          dplyr::case_when(
+            input$map_style == 'choropleth' ~ list(
+              ggplot2::geom_sf(
+                data = (
+                  country_shapes() %>%
+                    dplyr::inner_join(covid_daily_data_by_country() %>%
+                                        dplyr::filter(
+                                          date == input$date,
+                                          data_type == input$data_type
+                                        ), by = c("CNTR_ID", "ISO3_CODE", "NAME_ENGL")) %>%
+                    dplyr::mutate(
+                      lty = as.character(dplyr::if_else(CNTR_ID == input$country, "solid", "blank")),
+                      lcol = as.character(dplyr::if_else(CNTR_ID == input$country, "#a59329", "#f0f8ff")),
+                      lw = as.numeric(dplyr::if_else(CNTR_ID == input$country, 1,0, 0.25)))
+                ), 
+                ggplot2::aes(geometry = geometry, color = lcol, size = lw, fill = value), 
+                alpha = 1.0
+              ),
+              ggplot2::scale_size_identity(guide = FALSE),
+              viridis::scale_fill_viridis(option = "inferno", direction = -1)
+            ),
+            input$map_style == 'bubble' ~ list(
+              ggplot2::geom_point(
+                data = (
+                  country_shapes() %>%
+                    dplyr::inner_join(covid_daily_data_by_country() %>%
+                                        dplyr::filter(
+                                          date == input$date,
+                                          data_type == input$data_type
+                                        ), by = c("CNTR_ID", "ISO3_CODE", "NAME_ENGL")) %>%
+                    dplyr::mutate(
+                      lty = as.character(dplyr::if_else(CNTR_ID == input$country, "solid", "blank")),
+                      lcol = as.character(dplyr::if_else(CNTR_ID == input$country, "#a59329", "#f0f8ff")),
+                      lw = as.numeric(dplyr::if_else(CNTR_ID == input$country, 1,0, 0.25)))
+                ), 
+                ggplot2::aes(
+                  geometry = geometry, 
+                  x = ggplot2::after_stat(x), 
+                  y = ggplot2::after_stat(y),
+                  size = value, fill = value), 
+                stat = 'sf_coordinates',
+                color = "#f0f8ff", stroke = 0.25,
+                shape = 21, alpha = 0.5
+                ),
+              ggplot2::scale_size(range = c(0, 25), guide = FALSE),
+              viridis::scale_fill_viridis(option = "magma", direction = 1)
+            )
           ) +
-        ggplot2::scale_linetype_identity(guide = FALSE) +
-        ggplot2::scale_color_identity(guide = FALSE) +
-        ggplot2::scale_size_identity(guide = FALSE) +
-        viridis::scale_fill_viridis(option = "inferno", direction = 1) +
-        ggplot2::ggtitle(paste(input$data_type, "on", input$date))
+          ggplot2::scale_linetype_identity(guide = FALSE) +
+          ggplot2::scale_color_identity(guide = FALSE) +
+          ggplot2::ggtitle(paste(input$data_type, "on", input$date))
+      )
     }, bg = "transparent")
     
     output$chart <- renderPlot({
