@@ -1,5 +1,6 @@
 library(shiny)
 library(leaflet)
+library(sf)
 dotenv::load_dot_env('.env')
 
 #%% Function definitions
