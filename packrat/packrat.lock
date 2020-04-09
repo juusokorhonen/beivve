@@ -40,6 +40,12 @@ Source: CRAN
 Version: 1.0.2
 Hash: d04e441a8d398e3d3a71f294c07fa94d
 
+Package: RgoogleMaps
+Source: CRAN
+Version: 1.4.5.3
+Hash: 2f68bca0ee2c65c854700ddfc4e2a1a5
+Requires: png, sp
+
 Package: SQUAREM
 Source: CRAN
 Version: 2020.2
@@ -79,6 +85,16 @@ Source: CRAN
 Version: 0.1-3
 Hash: c590d29e555926af053055e23ee79efb
 
+Package: bitops
+Source: CRAN
+Version: 1.0-6
+Hash: 67d0775189fd0041d95abca618c5c07e
+
+Package: brew
+Source: CRAN
+Version: 1.0-6
+Hash: 931f9972deae0f205e1c78a51f33149b
+
 Package: callr
 Source: CRAN
 Version: 3.4.3
@@ -113,6 +129,11 @@ Version: 0.3.4
 Hash: 00ecc9003f17914a8ff867afb59d4bfb
 Requires: BH, Rcpp
 
+Package: commonmark
+Source: CRAN
+Version: 1.7
+Hash: 77f4ba718e2bad1877ef26e48cf8fa43
+
 Package: crayon
 Source: CRAN
 Version: 1.3.4
@@ -139,6 +160,12 @@ Package: digest
 Source: CRAN
 Version: 0.6.22
 Hash: 824be063463b3709782ef29a3e8d7079
+
+Package: docstring
+Source: CRAN
+Version: 1.0.0
+Hash: 649a026443c7c913a647e7c9a854c5e3
+Requires: roxygen2
 
 Package: dotenv
 Source: CRAN
@@ -188,6 +215,14 @@ Source: CRAN
 Version: 0.0.2
 Hash: 4aaf002dd434e8c854611c5d11a1d58e
 
+Package: ggmap
+Source: CRAN
+Version: 3.0.0
+Hash: d5a5076e48affb376046c80907b5bb71
+Requires: RgoogleMaps, bitops, digest, dplyr, ggplot2, glue, httr,
+    jpeg, magrittr, plyr, png, purrr, rjson, scales, stringr, tibble,
+    tidyr
+
 Package: ggplot2
 Source: CRAN
 Version: 3.3.0
@@ -214,6 +249,11 @@ Package: gtable
 Source: CRAN
 Version: 0.3.0
 Hash: a9e7b0666eb933a0cb36779240b4462e
+
+Package: highr
+Source: CRAN
+Version: 0.8
+Hash: 16aa2cc98d7b68c9d148c263c8dcdbcd
 
 Package: hms
 Source: CRAN
@@ -257,10 +297,21 @@ Version: 0.2.0
 Hash: 193bb68b28a163eec07317c5afb49c40
 Requires: Rcpp, testthat
 
+Package: jpeg
+Source: CRAN
+Version: 0.1-8.1
+Hash: 97b97a492a7a0cefb63e9632e3280e57
+
 Package: jsonlite
 Source: CRAN
 Version: 1.6
 Hash: 5f969e213e966135393e3e304abf3f49
+
+Package: knitr
+Source: CRAN
+Version: 1.28
+Hash: 408899ff6416ccf790182c95c8fa9c81
+Requires: evaluate, highr, markdown, stringr, xfun, yaml
 
 Package: labeling
 Source: CRAN
@@ -494,10 +545,22 @@ Version: 0.2.0
 Hash: 4e7bdbda7aa6dce3f23d16d3d4910784
 Requires: crayon, dplyr, glue, httr, jsonlite, purrr, rlang, tibble
 
+Package: rjson
+Source: CRAN
+Version: 0.2.20
+Hash: 44ee331003bf03b92e97b3089461dd2f
+
 Package: rlang
 Source: CRAN
 Version: 0.4.5
 Hash: 99d62d0aaf54a9938784f4485efa9933
+
+Package: roxygen2
+Source: CRAN
+Version: 7.1.0
+Hash: c58e9e0f53696a3132cee6db10473b2c
+Requires: R6, Rcpp, brew, commonmark, desc, digest, knitr, pkgload,
+    purrr, rlang, stringi, stringr, xml2
 
 Package: rprojroot
 Source: CRAN

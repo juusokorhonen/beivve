@@ -1,5 +1,6 @@
 library(shiny)
 library(leaflet)
+library(sf)
 dotenv::load_dot_env('.env')
 
 #%% Function definitions
@@ -11,6 +12,7 @@ setRefClass("Database",
               country_filenames = "data.frame",
               country_data_filename = "character",
               country_shapes = "sf",
+              country_shapes_crs = "crs",
               covid_daily_reports = "data.frame",
               world_population = "data.frame",
               region_to_country = "data.frame",
@@ -107,7 +109,7 @@ country_filenames <- function() {
   db$country_filenames
 }
 
-country_shapes <- function(filename = "CNTR_RG_60M_2016_4326.shp.zip") {
+country_shapes <- function(filename = "CNTR_RG_60M_2016_4326.shp.zip", crs = NULL) {
   #' Lazy loads a shapefile with country outlines
   #' File is searched in the path set by COUNTRIES_PATH (default: 'data/countries')
   #' @param filename -- Name of file to load in
@@ -138,9 +140,46 @@ country_shapes <- function(filename = "CNTR_RG_60M_2016_4326.shp.zip") {
         stop("Cannot find data source file.")
     }
     
-    db$country_shapes <- sf::read_sf(paste0(dir_name, "/", shp_file))
+    db$country_shapes <- 
+      sf::read_sf(paste0(dir_name, "/", shp_file)) 
+    
+    db$country_shapes_crs <-
+      db$country_shapes %>%
+        sf::st_crs()
+  }
+  if (!is.null(crs) && crs != db$country_shapes_crs) {
+    crs_from <- db$country_shapes_crs$proj4string
+    crs_to <- ifelse(is(crs, "crs"), crs$proj4string, crs)
+    crs_transform <- paste(crs_from, "+to", crs_to)
+    
+    tryCatch(
+      db$country_shapes <- 
+        db$country_shapes %>%
+        sf::st_transform(crs = crs_transform),
+      error = db$country_shapes <- 
+        db$country_shapes %>%
+        sf::st_transform(crs = crs_transform, use_gdal = FALSE)
+    )
+    db$country_shapes_crs <-
+      db$country_shapes %>%
+        sf::st_crs()
   }
   db$country_shapes
+}
+
+country_shapes_crs <- function(use_proj4string = TRUE) {
+  #' Returns the current CRS for the country shapes.
+  #' @return Either string or class crs
+  db <- database()
+  if (!is_initialized(db, "country_shapes_crs")) {
+    return(NULL)
+  }
+  
+  if (use_proj4string) {
+    db$country_shapes_crs$proj4string
+  } else { 
+    db$country_shapes_crs
+  }
 }
 
 covid_daily_reports <- function(force_update = FALSE) {
@@ -328,7 +367,7 @@ date_range <- function() {
 }
 
 # !!! Daily data
-covid_daily_data <- function(force_update = FALSE) {
+covid_daily_data <- function(force_update = FALSE, difference_days = 1) {
   db <- database()
   if (!is_initialized(db, "covid_daily_data") || force_update) {
     db$covid_daily_data_by_country <- data.frame()   # Reset also this dataframe
@@ -349,17 +388,18 @@ covid_daily_data <- function(force_update = FALSE) {
         dplyr::ungroup() %>%
         tidyr::replace_na(list(confirmed = 0, deaths = 0, recovered = 0)) %>% 
         dplyr::mutate(
-          prev_confirmed = dplyr::lag(confirmed, n=1, default = 0),
-          prev_deaths = dplyr::lag(deaths, n=1, default = 0),
-          prev_recovered = dplyr::lag(recovered, n=1, default = 0),
-          d_confirmed = dplyr::if_else(prev_confirmed > 0, confirmed / dplyr::lag(confirmed, n=1), 0),
-          d_deaths = dplyr::if_else(prev_deaths > 0, deaths / dplyr::lag(deaths, n=1), 0),
-          d_recovered = dplyr::if_else(prev_recovered > 0, recovered / dplyr::lag(recovered, n=1), 0)
+          prev_confirmed = dplyr::lag(confirmed, n = difference_days, default = 0),
+          prev_deaths = dplyr::lag(deaths, n = difference_days, default = 0),
+          prev_recovered = dplyr::lag(recovered, n = difference_days, default = 0),
+          d_confirmed = confirmed - prev_confirmed,
+          d_deaths = deaths - prev_deaths,
+          d_recovered = recovered - prev_recovered
         ) %>% 
         dplyr::select(-prev_confirmed, -prev_deaths, -prev_recovered) %>%
         tidyr::replace_na(list(d_confirmed = 0, d_deaths = 0, d_recovered = 0)) %>% 
         tidyr::pivot_longer(c(confirmed, deaths, recovered,
-                              d_confirmed, d_deaths, d_recovered), names_to = "data_type")
+                              d_confirmed, d_deaths, d_recovered), names_to = "data_type") %>%
+        dplyr::arrange(date, CNTR_ID, data_type)
   }
   db$covid_daily_data
 }
@@ -421,28 +461,6 @@ today <- function() {
 pt_to_mm <- function(x) {
   pt <- grid::unit(x, "pt")
   grid::convertUnit(pt, "mm")
-}
-
-# Basic map theme thanks to https://timogrossenbacher.ch/2016/12/beautiful-thematic-maps-with-ggplot2-only/
-theme_map <- function(...) {
-  ggplot2::theme_minimal() +
-    ggplot2::theme(
-      text = ggplot2::element_text(family = "Fira Sans", color = "#22211d"),
-      axis.line = ggplot2::element_blank(),
-      axis.text.x = ggplot2::element_blank(),
-      axis.text.y = ggplot2::element_blank(),
-      axis.ticks = ggplot2::element_blank(),
-      axis.title.x = ggplot2::element_blank(),
-      axis.title.y = ggplot2::element_blank(),
-      #panel.grid.minor = ggplot2::element_line(color = "#ebebe5", size = 0.25),
-      panel.grid.major = ggplot2::element_line(color = "#ebebe5", size = 0.25),
-      panel.grid.minor = ggplot2::element_blank(),
-      plot.background = ggplot2::element_rect(fill = "#f5f5f2", color = NA), 
-      panel.background = ggplot2::element_rect(fill = "#f5f5f2", color = NA), 
-      legend.background = ggplot2::element_rect(fill = "#f5f5f2", color = NA),
-      panel.border = ggplot2::element_blank(),
-      ...
-    )
 }
 
 
