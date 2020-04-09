@@ -147,22 +147,27 @@ country_shapes <- function(filename = "CNTR_RG_60M_2016_4326.shp.zip", crs = NUL
       db$country_shapes %>%
         sf::st_crs()
   }
-  if (!is.null(crs) && crs != db$country_shapes_crs) {
-    crs_from <- db$country_shapes_crs$proj4string
-    crs_to <- ifelse(is(crs, "crs"), crs$proj4string, crs)
-    crs_transform <- paste(crs_from, "+to", crs_to)
-    
-    tryCatch(
-      db$country_shapes <- 
+  if (!is.null(crs)) {
+    if (!is(crs, "crs")) {
+      crs <- sf::st_crs(crs)
+    }
+    if (crs$proj4string != db$country_shapes_crs$proj4string) {
+      crs_from <- db$country_shapes_crs$proj4string
+      crs_to <- crs$proj4string
+      crs_transform <- paste(crs_from, "+to", crs_to)
+      
+      tryCatch(
+        db$country_shapes <- 
+          db$country_shapes %>%
+          sf::st_transform(crs = crs_to),
+        error = db$country_shapes <- 
+          db$country_shapes %>%
+          sf::st_transform(crs = crs_to, use_gdal = FALSE)
+      )
+      db$country_shapes_crs <-
         db$country_shapes %>%
-        sf::st_transform(crs = crs_transform),
-      error = db$country_shapes <- 
-        db$country_shapes %>%
-        sf::st_transform(crs = crs_transform, use_gdal = FALSE)
-    )
-    db$country_shapes_crs <-
-      db$country_shapes %>%
-        sf::st_crs()
+          sf::st_crs()
+    }
   }
   db$country_shapes
 }
@@ -179,6 +184,37 @@ country_shapes_crs <- function(use_proj4string = TRUE) {
     db$country_shapes_crs$proj4string
   } else { 
     db$country_shapes_crs
+  }
+}
+
+set_country_shapes_crs <- function(crs) {
+  #' Sets the current CRS for the country shapes.
+  db <- database()
+  if (!is_initialized(db, "country_shapes_crs")) {
+    country_shapes(crs = crs)
+    return
+  }
+  if (!is(crs, "crs")) {
+      crs <- sf::st_crs(crs)
+  }
+  if (db$country_shapes_crs$proj4string != crs$proj4string) {
+    crs_from <- db$country_shapes_crs$proj4string
+    crs_to <- crs$proj4string
+    crs_transform <- paste(crs_from, "+to", crs_to)
+    
+    print(paste("[DEBUG] Changing projection from", crs_from, "to", crs_to))
+    
+    tryCatch(
+      db$country_shapes <- 
+        db$country_shapes %>%
+        sf::st_transform(crs = crs_to),
+      error = db$country_shapes <- 
+        db$country_shapes %>%
+        sf::st_transform(crs = crs_to, use_gdal = FALSE)
+    )
+    db$country_shapes_crs <-
+      db$country_shapes %>%
+      sf::st_crs()
   }
 }
 

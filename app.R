@@ -6,6 +6,7 @@ source("./global.R")
 proj4_longlat <- "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
 proj4_webmerc <- "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs"
 proj4_robin <- "+proj=robin +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+proj4_moll <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
 
 crs <- function(proj4string = NULL) {
   #' @return class crs for the given proj4string
@@ -42,7 +43,7 @@ world_outline <- function(force_update = FALSE) {
 
 proto_map <- function(force_update = FALSE) {
   if (!exists("proto_map_") || force_update) {
-    cs <- country_shapes(crs = crs())
+    cs <- country_shapes()
     proto_map_ <<-
       cs %>%
       ggplot2::ggplot() +
@@ -52,23 +53,12 @@ proto_map <- function(force_update = FALSE) {
         color = '#f0f8ff', size = 0.5, linetype = 0
       ) +
       ggplot2::geom_sf(
-        data = sf::st_graticule(crs = crs()),
+        data = sf::st_graticule(crs = vals$crs),
         colour = '#2f393f', size = 0.25, linetype = 1
       ) +
       ggplot2::geom_sf(
         ggplot2::aes(geometry = geometry),
         colour = '#f0f8ff', size = 0.25, fill = '#2f393f') +
-      ggplot2::guides(
-        fill = ggplot2::guide_colorbar(
-          direction = "horizontal",
-          barheight = grid::unit(2, units = "mm"),
-          barwidth = grid::unit(50, units = "mm"),
-          draw.ulim = F,
-          title.position = 'top',
-          # some shifting around
-          title.hjust = 0.5,
-          label.hjust = 0.5
-        )) +
       ggplot2::ggtitle("Unintialized") +
       ggplot2::theme_minimal() +
       ggplot2::theme(
@@ -87,7 +77,7 @@ proto_map <- function(force_update = FALSE) {
         plot.background = ggplot2::element_blank(),
         panel.background = ggplot2::element_blank(),
         #panel.background = ggplot2::element_rect(fill = "aliceblue", color = NA), 
-        legend.background = ggplot2::element_rect(fill = "#f5f5f2", color = NA),
+        legend.background = ggplot2::element_rect(fill = "#15190c", color = "#2f393f", size = 0.50),
         legend.position = 'bottom',
         panel.border = ggplot2::element_blank(),
         panel.ontop = FALSE
@@ -96,10 +86,12 @@ proto_map <- function(force_update = FALSE) {
   proto_map_
 }
 
-map_choropleth <- function(date, country, data_type) {
-    list(
-      
-    )
+disp_window <- function(bottom_left, top_right, crs) {
+  #' Calculates a display window for given, center, zoom level, and crs
+  dw <- sf::st_sfc(sf::st_point(bottom_left), sf::st_point(top_right), crs = 4326)
+  dw_t <- sf::st_transform(dw, crs = crs)
+  dw_c <- sf::st_coordinates(dw_t)
+  dw_c
 }
 
 # Define UI
@@ -121,6 +113,32 @@ ui <- fluidPage(theme = shinytheme("slate"),
                   ),
                   column(2,
                          wellPanel(
+                           selectInput("map_region", 
+                                       label = "Choose map region",
+                                       choices = list(
+                                         "World" = "world",
+                                         "EU" = "eu",
+                                         "North America" = "north-am",
+                                         "South America" = "south-am",
+                                         "Africa" = "africa",
+                                         "Asia" = "asia",
+                                         "Oceania" = "oceania",
+                                         "China" = "china",
+                                         "Finland" = "finland",
+                                         "Brazil" = "brazil"
+                                       ),
+                                       selected = 'world'
+                           ),
+                           selectInput("map_projection", 
+                                       label = "Choose map projection",
+                                       choices = list(
+                                         "Robinson" = "robin",
+                                         "Mollweide" = "moll",
+                                         "Web Mercator" = "web_merc",
+                                         "Longitude - Latitude" = "longlat"
+                                       ),
+                                       selected = 'robin'
+                           ),
                            selectInput("map_style", 
                                        label = "Choose visualization style",
                                        choices = list(
@@ -154,7 +172,44 @@ ui <- fluidPage(theme = shinytheme("slate"),
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
+    # Set reactive values
+    vals <- reactiveValues(
+      crs = crs(),
+      country_shapes = country_shapes(),
+      world_outline = world_outline(),
+      map_projection = 'robin',
+      map_region = 'world',
+      disp_window = disp_window(c(-180, -80), c(180, 80), crs())
+    )
   
+    observeEvent(input$map_projection, {
+      print("[DEBUG] Changing projection")
+      proj4string <-
+        dplyr::case_when(
+          input$map_projection == 'robin' ~ proj4_robin,
+          input$map_projection == 'web_merc' ~ proj4_webmerc,
+          input$map_projection == 'moll' ~ proj4_moll,
+          input$map_projection == 'longlat' ~ proj4_longlat
+        )
+      set_country_shapes_crs(proj4string)
+      proto_map(force_update = TRUE)
+      vals$map_projection = input$map_projection
+      vals$crs <- country_shapes_crs()
+      vals$country_shapes <- country_shapes()
+    })
+  
+    observeEvent(input$map_region, {
+        if (input$map_region == 'eu') {
+          bottom_left <- c(-20, 20)
+          top_right <- c(60, 85)
+        } else { 
+          bottom_left <- c(-180, -80)
+          top_right <- c(180, 80)
+        }
+      vals$map_region = input$map_region
+      vals$disp_window <- disp_window(bottom_left, top_right, vals$crs)
+    })
+    
     output$map <- renderPlot({
       (
         proto_map() +
@@ -162,7 +217,7 @@ server <- function(input, output) {
             input$map_style == 'choropleth' ~ list(
               ggplot2::geom_sf(
                 data = (
-                  country_shapes() %>%
+                  vals$country_shapes %>%
                     dplyr::inner_join(covid_daily_data_by_country() %>%
                                         dplyr::filter(
                                           date == input$date,
@@ -174,15 +229,15 @@ server <- function(input, output) {
                       lw = as.numeric(dplyr::if_else(CNTR_ID == input$country, 1,0, 0.25)))
                 ), 
                 ggplot2::aes(geometry = geometry, color = lcol, size = lw, fill = value), 
-                alpha = 1.0
+                alpha = 0.75
               ),
               ggplot2::scale_size_identity(guide = FALSE),
-              viridis::scale_fill_viridis(option = "inferno", direction = -1)
+              viridis::scale_fill_viridis(option = "magma", direction = 1)
             ),
             input$map_style == 'bubble' ~ list(
               ggplot2::geom_point(
                 data = (
-                  country_shapes() %>%
+                  vals$country_shapes %>%
                     dplyr::inner_join(covid_daily_data_by_country() %>%
                                         dplyr::filter(
                                           date == input$date,
@@ -206,9 +261,13 @@ server <- function(input, output) {
               viridis::scale_fill_viridis(option = "magma", direction = 1)
             )
           ) +
+          ggplot2::coord_sf(
+            xlim = vals$disp_window[,'X'],
+            ylim = vals$disp_window[,'Y'],
+            crs = vals$crs, datum = vals$crs) +
           ggplot2::scale_linetype_identity(guide = FALSE) +
           ggplot2::scale_color_identity(guide = FALSE) +
-          ggplot2::ggtitle(paste(input$data_type, "on", input$date))
+          ggplot2::ggtitle(paste(input$data_type, "on", input$date, "(", vals$map_projection, "projection,", vals$map_region, "region)"))
       )
     }, bg = "transparent")
     
