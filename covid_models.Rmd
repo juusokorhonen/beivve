@@ -1,0 +1,126 @@
+---
+title: "Modelling COVID-19"
+output: html_notebook
+---
+
+Models for the COVID-19 progression. 
+
+```{r}
+library(tidyverse)
+source("./global.R")
+```
+
+Initialize dataset
+
+```{r}
+covid_data <- covid_daily_data()
+# covid_data <- covid_daily_data_by_country()
+world_pop <- world_population()
+
+world_pop_sel <- world_pop %>%
+  select(c(country_code, population)) %>%
+  rename(ISO3_CODE = country_code)
+
+covid_data_pop <- covid_data %>%
+  left_join(world_pop_sel, by=("ISO3_CODE"))
+
+
+```
+
+Make a simple exponential model
+
+```{r}
+covid_bra <- covid_data_pop %>%
+  filter(ISO3_CODE == "BRA" & data_type == 'deaths') %>%
+  # filter(date > "2019-12-22") %>%
+  # filter(value > 50) %>%
+  mutate(cuts = cut(date, breaks="1 days", labels=FALSE)) %>%
+  mutate(days = as.numeric(date - earliestDate())) #%>%
+  # group_by(cuts) %>%
+  # group_by(date, ISO3_CODE, days) %>%
+  # summarise(value = sum(value), n=n()) %>%
+  # ungroup()
+  
+
+# log.model <-lm(log(value) ~ cuts, covid_bra)
+# log.model.df <- data.frame(x = covid_bra$cuts,
+#                            y = exp(fitted(log.model)))
+
+# fit <- nls(value ~ SSlogis(days, Asym, xmid, scal), data = covid_bra)
+# log.model.df <- data.frame(x = covid_bra$days,
+#                            y = fitted(fit))
+# summary(fit)
+
+ggplot(covid_bra, aes(x=days, y=value)) +
+  geom_point() + 
+  # geom_col() +
+  # geom_smooth(method="lm", aes(color="Exp Model"), formula= (y ~ poly(x,10)), se=TRUE, linetype = 1) +
+  # geom_line(data = log.model.df, aes(x, y, color = "Log Model"), size = 1, linetype = 2) +
+  # geom_line(data = covid_bra, aes(x=days, y=10, color = "Log Model"), size = 1, linetype = 2) +
+  xlab("")
+
+```
+
+
+
+```{r}
+world_pop_fix <- world_pop %>%
+  # filter(country_code == "USA") %>%
+  mutate(NAME_ENGL=replace(NAME_ENGL, country_code=="USA", "US"))
+
+covid_bra <- covid_data_pop %>%
+  # filter(ISO3_CODE == "BRA" & data_type == 'deaths') %>%
+  filter(ISO3_CODE == "USA") %>%
+  mutate(cuts = cut(date, breaks="1 days", labels=FALSE)) %>%
+  mutate(days = as.numeric(date - earliestDate())) %>%
+  # group_by(cuts) %>%
+  group_by(date, ISO3_CODE, days, data_type)
+  # summarise(value = sum(value), n=n()) %>%
+  # ungroup()
+
+ggplot(covid_bra, aes(x=days, y=value, color=data_type)) +
+  geom_point() + 
+  # geom_col() +
+  # geom_smooth(method="lm", aes(color="Exp Model"), formula= (y ~ poly(x,10)), se=TRUE, linetype = 1) +
+  # geom_line(data = log.model.df, aes(x, y, color = "Log Model"), size = 1, linetype = 2) +
+  # geom_line(data = covid_bra, aes(x=days, y=10, color = "Log Model"), size = 1, linetype = 2) +
+  xlab("")
+
+```
+
+```{r}
+model <- glm(value ~ ., family="binomial", data=covid_bra)
+
+
+```
+
+```{r}
+df_other = read_csv('https://raw.githubusercontent.com/datasets/covid-19/master/data/countries-aggregated.csv')
+
+df_other <- df_other %>%
+  pivot_longer(-c(Date, Country), names_to = "data_type", values_to = "value") %>%
+  mutate(Date = lubridate::as_date(Date),
+         Country = as.factor(Country),
+         data_type = as.factor(data_type))
+
+str(df_other)
+```
+
+```{r}
+covid_df <- df_other %>%
+  # filter(ISO3_CODE == "BRA" & data_type == 'deaths') %>%
+  filter(Country == "Brazil") %>%
+  mutate(days = as.numeric(Date - earliestDate()))
+
+ggplot(covid_df, aes(x=days, y=value, color=data_type)) +
+  geom_point() + 
+  geom_line() + 
+  # geom_col() +
+  # geom_smooth(method="lm", aes(color="Exp Model"), formula= (y ~ poly(x,10)), se=TRUE, linetype = 1) +
+  # geom_line(data = log.model.df, aes(x, y, color = "Log Model"), size = 1, linetype = 2) +
+  # geom_line(data = covid_bra, aes(x=days, y=10, color = "Log Model"), size = 1, linetype = 2) +
+  xlab("")
+```
+
+
+

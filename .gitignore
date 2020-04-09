@@ -1,5 +1,6 @@
 packrat/lib*/
 packrat/src/*
+.idea/
 .Rproj.user
 .RData
 .Rhistory
@@ -7,3 +8,4 @@ packrat/src/*
 rsconnect/*
 data/countries/*
 data/csse_covid_19_daily_reports/*
+*.nb.html
